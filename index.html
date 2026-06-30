@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RestoBuy · Gestor de Compras</title>
+
+    <!-- Chart.js vía CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js">
+    </script>
+
+    <!-- CSS Principal -->
+    <link rel="stylesheet" href="css/style.css" />
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz@14..32&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+    <!-- ============================================ -->
+    <!-- OVERLAY DE LOGIN                             -->
+    <!-- ============================================ -->
+    <div id="loginOverlay" class="login-overlay">
+        <div class="login-card">
+            <div class="login-brand">
+                <span class="login-icon">🍽️</span>
+                <h1>RestoBuy</h1>
+                <p>Gestión de compras para restaurantes</p>
+            </div>
+            <form id="loginForm" class="login-form">
+                <div class="form-group">
+                    <label for="loginUser">👤 Usuario</label>
+                    <input type="text" id="loginUser" placeholder="admin" value="admin" required />
+                </div>
+                <div class="form-group">
+                    <label for="loginPass">🔒 Contraseña</label>
+                    <input type="password" id="loginPass" placeholder="••••••••" value="restaurant2026" required />
+                </div>
+                <div class="form-group">
+                    <label for="jefeName">👔 Nombre del Jefe(a)</label>
+                    <input type="text" id="jefeName" placeholder="Ej. María González" value="María González" required />
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Ingresar</button>
+                <p class="login-error" id="loginError"></p>
+            </form>
+        </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- APP PRINCIPAL                                -->
+    <!-- ============================================ -->
+    <div id="app" class="app-container" style="display: none;">
+
+        <!-- HEADER -->
+        <header class="app-header">
+            <div class="header-left">
+                <span class="logo">🍽️ RestoBuy</span>
+                <span class="header-badge">Jefatura</span>
+                <span class="header-date" id="headerDate"></span>
+            </div>
+            <div class="header-right">
+                <div class="budget-group">
+                    <span class="budget-label" id="jefeNameDisplay">👔 María González</span>
+                    <!-- ELIMINÉ el saldo de aquí, solo queda el nombre -->
+                </div>
+                <button id="logoutBtn" class="btn btn-outline btn-sm">🚪 Cerrar sesión</button>
+            </div>
+        </header>
+
+        <!-- MAIN -->
+        <main class="app-main">
+
+            <!-- TOP ROW: Presupuesto + Agregar Producto (lado a lado) -->
+            <div class="top-row">
+
+                <!-- Presupuesto -->
+                <!-- Presupuesto -->
+                <section class="card card-budget">
+                    <h3>💰 Presupuesto</h3>
+                    <form id="budgetForm" class="budget-form">
+                        <!-- SALDO INICIAL + SALDO ACTUAL (lado a lado) -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Saldo General Inicial</label>
+                                <input type="number" id="initialGeneralBudget" step="100" min="0" placeholder="1000000" />
+                            </div>
+                            <div class="form-group">
+                                <label>Saldo General Actual</label>
+                                <input type="text" id="currentGeneralBudgetDisplay" readonly 
+                                    style="background: var(--bg-secondary); cursor: default; font-weight: 600; color: var(--green);" />
+                            </div>
+                        </div>
+
+                        <!-- SALDO POR CATEGORÍA (lado a lado) -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Categoría</label>
+                                <select id="categoryBudgetSelect">
+                                    <option value="alimentos">🍎 Alimentos</option>
+                                    <option value="bebidas">🥤 Bebidas</option>
+                                    <option value="mesa">🍽️ Artículos de Mesa</option>
+                                    <option value="limpieza">🧹 Limpieza</option>
+                                    <option value="otros">📦 Otros</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Saldo Inicial</label>
+                                <input type="number" id="categoryBudgetInput" step="100" min="0" placeholder="200000" />
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-secondary btn-block">Actualizar saldos</button>
+                    </form>
+
+                    <!-- ESTO SE MANTIENE IGUAL (saldos de categoría con inicial + actual) -->
+                    <div class="category-budgets" id="categoryBudgets">
+                        <!-- Renderizado por JS -->
+                    </div>
+                </section>
+
+                <!-- Agregar Producto -->
+                <section class="card card-form card-add-item">
+                    <h3>📦 Agregar Producto</h3>
+                    <form id="itemForm">
+                        <div class="form-group">
+                            <label>Nombre del producto *</label>
+                            <input type="text" id="itemName" placeholder="Ej. Tomates" required />
+                        </div>
+                        <div class="form-group">
+                            <label>Descripción</label>
+                            <textarea id="itemDesc" rows="2" placeholder="Detalles del producto..."></textarea>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Categoría *</label>
+                                <select id="itemCategory" required>
+                                    <option value="alimentos">🍎 Alimentos</option>
+                                    <option value="bebidas">🥤 Bebidas</option>
+                                    <option value="mesa">🍽️ Artículos de Mesa</option>
+                                    <option value="limpieza">🧹 Limpieza</option>
+                                    <option value="otros">📦 Otros</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Cantidad *</label>
+                                <input type="number" id="itemQty" step="1" min="1" placeholder="10" required />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Urgencia</label>
+                            <select id="itemUrgency">
+                                <option value="baja">🟢 Baja</option>
+                                <option value="media" selected>🟡 Media</option>
+                                <option value="alta">🔴 Alta</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block">➕ Agregar producto</button>
+                    </form>
+                </section>
+            </div>
+
+            <!-- BOTTOM ROW: Lista de productos en COLUMNAS + Gráficos -->
+            <div class="bottom-row">
+
+                <!-- Toolbar -->
+                <div class="toolbar">
+                    <div class="toolbar-left">
+                        <input type="text" id="searchInput" placeholder="🔍 Buscar producto..." />
+                        <select id="filterUrgency">
+                            <option value="all">Todas las urgencias</option>
+                            <option value="alta">🔴 Alta</option>
+                            <option value="media">🟡 Media</option>
+                            <option value="baja">🟢 Baja</option>
+                        </select>
+                        <select id="filterStatus">
+                            <option value="all">Todos</option>
+                            <option value="pending">⏳ Pendientes</option>
+                            <option value="purchased">✅ Comprados</option>
+                        </select>
+                    </div>
+                    <div class="toolbar-right">
+                        <span class="item-count" id="itemCount">0 productos</span>
+                    </div>
+                </div>
+
+                <!-- Lista de productos en COLUMNAS (una por categoría) -->
+                <div id="itemList" class="item-list-columns">
+                    <!-- Renderizado dinámico -->
+                </div>
+
+                <!-- Gráficos -->
+                <section class="charts-section">
+                    <h3>📊 Análisis de Movimientos</h3>
+                        <div class="chart-card">
+                            <h4>📊 Gasto por Categoría</h4>
+                            <canvas id="categoryChart"></canvas>
+                        </div>
+                        <!-- NUEVO: Gráfico de producto -->
+                        <div class="chart-card">
+                            <h4>📊 Gasto por Producto</h4>
+                            <canvas id="productChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="analysis-stats" id="analysisStats">
+                        <!-- Renderizado por JS -->
+                    </div>
+                </section>
+
+                <!-- ============================================ -->
+                <!-- BOTÓN DE EXPORTAR DATOS                      -->
+                <!-- ============================================ -->
+                <section class="export-section">
+                    <button id="exportBtn" class="btn btn-primary btn-block">
+                        📥 Exportar Datos del Mes
+                    </button>
+                    <p class="export-hint">Exporta todos los movimientos, productos y saldos a formato CSV (Excel)</p>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- MODAL: Proveedores                          -->
+    <!-- ============================================ -->
+    <div id="supplierModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalProductName">📍 Proveedores</h3>
+                <button class="modal-close" id="modalClose">&times;</button>
+            </div>
+            <div class="modal-body">
+
+                <div class="supplier-actions">
+                    <button class="btn btn-sm btn-outline" id="searchCheapest">💰 Más barato</button>
+                    <button class="btn btn-sm btn-outline" id="searchNearest">📍 Más cercano</button>
+                    <button class="btn btn-sm btn-outline" id="searchConvenient">⚖️ Más conveniente</button>
+                </div>
+
+                <div class="supplier-list">
+                    <h4>📋 Proveedores registrados</h4>
+                    <div id="supplierItems">
+                        <p style="color: var(--text-muted); font-size: 0.85rem;">No hay proveedores registrados.</p>
+                    </div>
+                </div>
+
+                <div class="supplier-form">
+                    <h4>➕ Registrar proveedor</h4>
+                    <form id="supplierForm">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Nombre</label>
+                                <input type="text" id="supplierName" placeholder="Ej. Distribuidora XYZ" required />
+                            </div>
+                            <div class="form-group">
+                                <label>Precio ($)</label>
+                                <input type="number" id="supplierPrice" step="10" min="1" placeholder="2500" required />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Dirección / Ubicación</label>
+                            <input type="text" id="supplierAddress" placeholder="Calle 123, Ciudad" required />
+                        </div>
+                        <button type="submit" class="btn btn-secondary btn-sm">Registrar proveedor</button>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- TOAST                                       -->
+    <!-- ============================================ -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- ============================================ -->
+    <!-- SCRIPTS                                      -->
+    <!-- ============================================ -->
+    <script src="js/state.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/budget.js"></script>
+    <script src="js/items.js"></script>
+    <script src="js/suppliers.js"></script>
+    <script src="js/dom.js"></script>
+    <script src="js/charts.js"></script>
+    <script src="js/export.js"></script>
+    <script src="js/app.js"></script>
+
+</body>
+</html>
