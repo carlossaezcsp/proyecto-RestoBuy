@@ -27,7 +27,10 @@ function login(username, password, jefeName) {
 function logout() {
     const state = AppState.get();
     state.isAuthenticated = false;
+    // NO guardamos el estado después de logout para que se borren los datos
+    // Solo limpiamos la autenticación
     AppState.save();
+    // Recargar la página para limpiar todo
     location.reload();
 }
 
@@ -39,7 +42,6 @@ function getJefeName() {
     return AppState.get().jefeName || 'Jefe(a)';
 }
 
-// NUEVA FUNCIÓN: Verificar contraseña para acciones sensibles
 function verifyPassword(password) {
     return password === AUTH_CREDENTIALS.password;
 }
