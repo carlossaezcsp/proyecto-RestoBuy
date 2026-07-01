@@ -25,12 +25,22 @@ function login(username, password, jefeName) {
 }
 
 function logout() {
+    // Limpiar el estado de autenticación
     const state = AppState.get();
     state.isAuthenticated = false;
-    // NO guardamos el estado después de logout para que se borren los datos
-    // Solo limpiamos la autenticación
+    // Mantener el nombre del jefe pero limpiar autenticación
     AppState.save();
-    // Recargar la página para limpiar todo
+    
+    // Limpiar los campos del formulario de login
+    const userInput = document.getElementById('loginUser');
+    const passInput = document.getElementById('loginPass');
+    const jefeInput = document.getElementById('jefeName');
+    
+    if (userInput) userInput.value = '';
+    if (passInput) passInput.value = '';
+    if (jefeInput) jefeInput.value = '';
+    
+    // Recargar la página para mostrar el login limpio
     location.reload();
 }
 
