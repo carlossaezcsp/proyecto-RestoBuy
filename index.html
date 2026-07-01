@@ -29,18 +29,19 @@
                 <h1>RestoBuy</h1>
                 <p>Gestión de compras para restaurantes</p>
             </div>
+            <!-- FORMULARIO DE LOGIN - SIN VALORES PRECARGADOS -->
             <form id="loginForm" class="login-form">
                 <div class="form-group">
                     <label for="loginUser">👤 Usuario</label>
-                    <input type="text" id="loginUser" placeholder="admin" value="admin" required />
+                    <input type="text" id="loginUser" placeholder="Ingrese su usuario" required />
                 </div>
                 <div class="form-group">
                     <label for="loginPass">🔒 Contraseña</label>
-                    <input type="password" id="loginPass" placeholder="••••••••" value="restaurant2026" required />
+                    <input type="password" id="loginPass" placeholder="Ingrese su contraseña" required />
                 </div>
                 <div class="form-group">
                     <label for="jefeName">👔 Nombre del Jefe(a)</label>
-                    <input type="text" id="jefeName" placeholder="Ej. María González" value="María González" required />
+                    <input type="text" id="jefeName" placeholder="Ej. María González" required />
                 </div>
                 <button type="submit" class="btn btn-primary btn-block">Ingresar</button>
                 <p class="login-error" id="loginError"></p>
@@ -62,8 +63,7 @@
             </div>
             <div class="header-right">
                 <div class="budget-group">
-                    <span class="budget-label" id="jefeNameDisplay">👔 María González</span>
-                    <!-- ELIMINÉ el saldo de aquí, solo queda el nombre -->
+                    <span class="budget-label" id="jefeNameDisplay">👔 Jefe(a)</span>
                 </div>
                 <button id="logoutBtn" class="btn btn-outline btn-sm">🚪 Cerrar sesión</button>
             </div>
@@ -75,7 +75,6 @@
             <!-- TOP ROW: Presupuesto + Agregar Producto (lado a lado) -->
             <div class="top-row">
 
-                <!-- Presupuesto -->
                 <!-- Presupuesto -->
                 <section class="card card-budget">
                     <h3>💰 Presupuesto</h3>
@@ -89,7 +88,7 @@
                             <div class="form-group">
                                 <label>Saldo General Actual</label>
                                 <input type="text" id="currentGeneralBudgetDisplay" readonly 
-                                    style="background: var(--bg-secondary); cursor: default; font-weight: 600; color: var(--green);" />
+                                       style="background: var(--bg-secondary); cursor: default; font-weight: 600; color: var(--green);" />
                             </div>
                         </div>
 
@@ -164,7 +163,7 @@
             <div class="bottom-row">
 
                 <!-- Toolbar -->
-                <div class="toolbar">
+                <div class="toolbar" style="margin-top: 1rem;">
                     <div class="toolbar-left">
                         <input type="text" id="searchInput" placeholder="🔍 Buscar producto..." />
                         <select id="filterUrgency">
@@ -192,11 +191,11 @@
                 <!-- Gráficos -->
                 <section class="charts-section">
                     <h3>📊 Análisis de Movimientos</h3>
+                    <div class="charts-grid">
                         <div class="chart-card">
                             <h4>📊 Gasto por Categoría</h4>
                             <canvas id="categoryChart"></canvas>
                         </div>
-                        <!-- NUEVO: Gráfico de producto -->
                         <div class="chart-card">
                             <h4>📊 Gasto por Producto</h4>
                             <canvas id="productChart"></canvas>
@@ -207,9 +206,9 @@
                     </div>
                 </section>
 
-<!-- ============================================ -->
-<!-- BOTÓN DE REINICIO Y EXPORTAR DATOS          -->
-<!-- ============================================ -->
+                <!-- ============================================ -->
+                <!-- BOTÓN DE REINICIO Y EXPORTAR DATOS          -->
+                <!-- ============================================ -->
                 <section class="export-section">
                     <div style="display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center;">
                         <button id="resetBtn" class="btn btn-danger btn-block" style="flex: 1; min-width: 200px;">
@@ -292,6 +291,24 @@
     <script src="js/charts.js"></script>
     <script src="js/export.js"></script>
     <script src="js/app.js"></script>
+
+    <!-- ============================================ -->
+    <!-- SEGURIDAD EXTRA: LIMPIAR CAMPOS DE LOGIN    -->
+    <!-- ============================================ -->
+    <script>
+        // Limpiar campos de login al cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            const userInput = document.getElementById('loginUser');
+            const passInput = document.getElementById('loginPass');
+            const jefeInput = document.getElementById('jefeName');
+            const errorEl = document.getElementById('loginError');
+            
+            if (userInput) userInput.value = '';
+            if (passInput) passInput.value = '';
+            if (jefeInput) jefeInput.value = '';
+            if (errorEl) errorEl.textContent = '';
+        });
+    </script>
 
 </body>
 </html>
