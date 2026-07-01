@@ -23,6 +23,17 @@ function showApp() {
 function showLogin() {
     document.getElementById('loginOverlay').style.display = 'flex';
     document.getElementById('app').style.display = 'none';
+    
+    // Limpiar los campos del formulario de login
+    const userInput = document.getElementById('loginUser');
+    const passInput = document.getElementById('loginPass');
+    const jefeInput = document.getElementById('jefeName');
+    const errorEl = document.getElementById('loginError');
+    
+    if (userInput) userInput.value = '';
+    if (passInput) passInput.value = '';
+    if (jefeInput) jefeInput.value = '';
+    if (errorEl) errorEl.textContent = '';
 }
 
 function updateHeaderDate() {
