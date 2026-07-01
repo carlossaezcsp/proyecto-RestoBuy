@@ -92,14 +92,16 @@ function setupEventListeners() {
             DOM.showToast('❌ Error al exportar datos', 'error');
         }
     });
+
+    // NUEVO: Botón de Reinicio
+    document.getElementById('resetBtn').addEventListener('click', handleReset);
 }
 
 function handleBudgetSubmit(e) {
     e.preventDefault();
     
-    // Solicitar contraseña para modificar saldos
     const password = prompt('🔒 Ingrese la contraseña de Jefatura para modificar los saldos:');
-    if (password === null) return; // Canceló
+    if (password === null) return;
     
     if (!Auth.verifyPassword(password)) {
         DOM.showToast('❌ Contraseña incorrecta. No se pueden modificar los saldos.', 'error');
@@ -121,7 +123,6 @@ function handleBudgetSubmit(e) {
     const catValue = Number(categoryInput.value);
     
     if (!isNaN(catValue) && catValue >= 0 && state.categoryBudgets[category]) {
-        // Calcular la suma de todos los saldos de categoría (incluyendo el que se está modificando)
         let totalCategoryBudget = 0;
         for (const [cat, data] of Object.entries(state.categoryBudgets)) {
             if (cat === category) {
@@ -131,7 +132,6 @@ function handleBudgetSubmit(e) {
             }
         }
         
-        // Validar que no supere el saldo general
         if (totalCategoryBudget > state.initialGeneralBudget) {
             DOM.showToast(`❌ La suma de los saldos por categoría (${Budget.formatCurrency(totalCategoryBudget)}) no puede superar el saldo general (${Budget.formatCurrency(state.initialGeneralBudget)})`, 'error');
             return;
@@ -161,6 +161,45 @@ function handleItemSubmit(e) {
     } else {
         DOM.showToast('❌ ' + result.message, 'error');
     }
+}
+
+// NUEVA FUNCIÓN: Reiniciar todos los datos
+function handleReset() {
+    const password = prompt('🔒 Ingrese la contraseña de Jefatura para reiniciar todos los datos:');
+    if (password === null) return;
+    
+    if (!Auth.verifyPassword(password)) {
+        DOM.showToast('❌ Contraseña incorrecta. No se puede reiniciar.', 'error');
+        return;
+    }
+    
+    if (!confirm('⚠️ ¿Está seguro que desea reiniciar TODOS los datos? Esta acción no se puede deshacer.')) {
+        return;
+    }
+    
+    // Crear un nuevo estado con los valores por defecto
+    const defaultState = {
+        isAuthenticated: true,
+        jefeName: AppState.get().jefeName || 'Jefe(a)',
+        generalBudget: 0,
+        initialGeneralBudget: 0,
+        categoryBudgets: {
+            alimentos: { initial: 0, current: 0 },
+            bebidas: { initial: 0, current: 0 },
+            mesa: { initial: 0, current: 0 },
+            limpieza: { initial: 0, current: 0 },
+            otros: { initial: 0, current: 0 },
+        },
+        items: [],
+        movements: [],
+        suppliers: [],
+        nextId: 1,
+    };
+    
+    AppState.set(defaultState);
+    DOM.showToast('✅ Datos reiniciados correctamente. Comience un nuevo mes.', 'success');
+    DOM.refreshUI();
+    location.reload();
 }
 
 document.addEventListener('DOMContentLoaded', initApp);
