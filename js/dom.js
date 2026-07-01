@@ -433,13 +433,16 @@ function showToast(message, type = 'info') {
 /**
  * Maneja la compra de un item (con input de precio real)
  */
+/**
+ * Maneja la compra de un item (con input de precio real)
+ */
 function handlePurchaseItem(itemId) {
     const realPrice = prompt('Ingrese el precio real pagado (CLP):');
     if (realPrice === null) return;
 
     const result = Items.purchaseItem(itemId, Number(realPrice));
     if (result.success) {
-        showToast(`✅ Compra registrada! Diferencia: ${Budget.formatCurrency(result.difference)}`, 'success');
+        showToast(`✅ Compra registrada: ${Budget.formatCurrency(Number(realPrice))}`, 'success');
         refreshUI();
     } else {
         showToast(`❌ ${result.message}`, 'error');
