@@ -1331,3 +1331,14 @@ h4 {
         grid-template-columns: 1fr 1fr;
     }
 }
+/* ============================================ */
+/* AJUSTE: SEPARACIÓN DEL TOOLBAR              */
+/* ============================================ */
+.toolbar {
+    margin-top: 0.5rem;
+}
+
+/* Si quieres más separación, usa este valor */
+.toolbar {
+    margin-top: 1rem;
+}
