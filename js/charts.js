@@ -2,7 +2,6 @@
 // charts.js - Gráficos y análisis
 // =============================================
 
-let trendChartInstance = null;
 let categoryChartInstance = null;
 let productChartInstance = null;
 
@@ -27,66 +26,6 @@ function updateCharts() {
     document.querySelectorAll('.chart-card canvas').forEach(canvas => canvas.style.display = 'block');
     updateCategoryChart(state);
     updateProductChart(state);
-}
-
-function updateTrendChart(state) {
-    const ctx = document.getElementById('trendChart')?.getContext('2d');
-    if (!ctx) return;
-    const sorted = [...state.movements].sort((a, b) => new Date(a.date) - new Date(b.date));
-    const labels = sorted.map(m => { const d = new Date(m.date); return `${d.getDate()}/${d.getMonth() + 1}`; });
-    let runningTotal = state.initialGeneralBudget || 0;
-    const dataPoints = [], purchasePoints = [];
-    sorted.forEach(m => {
-        if (m.type === 'estimate') { 
-            runningTotal -= m.amount; 
-        } else if (m.type === 'purchase') { 
-            runningTotal -= m.amount;
-            purchasePoints.push(-m.amount); 
-        }
-        dataPoints.push(runningTotal);
-    });
-    if (dataPoints.length === 0) {
-        labels.push('Inicio');
-        dataPoints.push(state.initialGeneralBudget || 0);
-        purchasePoints.push(0);
-    }
-    if (trendChartInstance) trendChartInstance.destroy();
-    trendChartInstance = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: [
-                { 
-                    label: 'Saldo General', 
-                    data: dataPoints, 
-                    borderColor: '#4F8EF7', 
-                    backgroundColor: 'rgba(79,142,247,0.1)', 
-                    fill: true, 
-                    tension: 0.3, 
-                    pointRadius: 3 
-                },
-                { 
-                    label: 'Compras', 
-                    data: purchasePoints, 
-                    borderColor: '#EF4444', 
-                    backgroundColor: 'rgba(239,68,68,0.1)', 
-                    fill: false, 
-                    tension: 0.3, 
-                    pointRadius: 2, 
-                    borderDash: [3, 3] 
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { labels: { color: '#94A3B8', font: { size: 10 }, boxWidth: 12, padding: 8 } } },
-            scales: {
-                x: { ticks: { color: '#64748B', font: { size: 9 }, maxTicksLimit: 15 }, grid: { color: 'rgba(53,60,82,0.3)' } },
-                y: { ticks: { color: '#64748B', font: { size: 9 }, callback: (value) => Budget.formatCurrency(value) }, grid: { color: 'rgba(53,60,82,0.3)' } }
-            }
-        }
-    });
 }
 
 function updateCategoryChart(state) {
@@ -241,19 +180,29 @@ function renderAnalysis() {
         .filter(m => m.type === 'purchase')
         .reduce((sum, m) => sum + m.amount, 0);
     
-    // Gasto del mes anterior (simulado - usamos el 80% del mes actual)
-    const previousMonthSpending = Math.round(totalSpent * 0.8);
+    // ===== GASTO MES ANTERIOR =====
+    // Verificar si hay movimientos de meses anteriores
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
     
-    // Categoría con mayor gasto
-    const catSpending = {};
-    state.movements
-        .filter(m => m.type === 'purchase')
-        .forEach(m => {
-            catSpending[m.category] = (catSpending[m.category] || 0) + m.amount;
-        });
-    const topCat = Object.entries(catSpending).sort((a, b) => b[1] - a[1])[0] || ['N/A', 0];
+    // Filtrar movimientos de meses anteriores
+    const previousMonthMovements = state.movements.filter(m => {
+        const date = new Date(m.date);
+        return (date.getMonth() !== currentMonth || date.getFullYear() !== currentYear);
+    });
     
-    // ÍTEM MÁS RECURRENTE - CONTAR POR CANTIDAD DE COMPRAS (no por cantidad de unidades)
+    // Calcular gasto del mes anterior
+    let previousMonthSpending = 0;
+    if (previousMonthMovements.length > 0) {
+        previousMonthSpending = previousMonthMovements
+            .filter(m => m.type === 'purchase')
+            .reduce((sum, m) => sum + m.amount, 0);
+    }
+    // Si no hay movimientos de meses anteriores, mostrar "$0"
+    
+    // ===== ÍTEM MÁS RECURRENTE =====
+    // Contar compras por producto (cada compra cuenta como 1)
     const itemCounts = {};
     state.movements
         .filter(m => m.type === 'purchase' && m.itemId)
@@ -271,6 +220,21 @@ function renderAnalysis() {
             if (item) mostRecurrent = item;
         }
     }
+    
+    // Si no hay compras, mostrar "N/A"
+    if (Object.keys(itemCounts).length === 0) {
+        mostRecurrent = null;
+        maxCount = 0;
+    }
+    
+    // Categoría con mayor gasto
+    const catSpending = {};
+    state.movements
+        .filter(m => m.type === 'purchase')
+        .forEach(m => {
+            catSpending[m.category] = (catSpending[m.category] || 0) + m.amount;
+        });
+    const topCat = Object.entries(catSpending).sort((a, b) => b[1] - a[1])[0] || ['N/A', 0];
 
     const html = `
         <div class="analysis-stat">
@@ -278,7 +242,7 @@ function renderAnalysis() {
             <span class="stat-label">💰 Gasto Actual</span>
         </div>
         <div class="analysis-stat">
-            <span class="stat-value">${Budget.formatCurrency(previousMonthSpending)}</span>
+            <span class="stat-value">${previousMonthMovements.length > 0 ? Budget.formatCurrency(previousMonthSpending) : '$0'}</span>
             <span class="stat-label">📆 Gasto Mes Anterior</span>
         </div>
         <div class="analysis-stat">
